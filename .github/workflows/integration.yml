@@ -1,0 +1,50 @@
+name: Integration Tests 🧪
+on:
+  workflow_call:
+  workflow_dispatch:
+  schedule:
+    - cron: 30 15 * * 0-6
+  push:
+    tags-ignore:
+      - '*.*'
+    branches:
+      - releases/v*
+
+permissions:
+  contents: write
+
+jobs:
+  refresh-api-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
+
+      - name: Fetch UTF8 Data 📦
+        id: validate
+        uses: JamesIves/fetch-api-data-action@8dc51e982d982157bfd575ed64be3c48b3078037 # v2
+        with:
+          endpoint: https://jsonplaceholder.typicode.com/todos/1
+          save-location: fetch-api-data-custom
+          save-name: todo
+          retry: true
+
+      - name: Access environment variable output
+        run: |
+          echo "${fetchApiData}"
+
+      - name: Access step output
+        env:
+          FETCH_API_DATA: ${{ steps.validate.outputs.fetchApiData }}
+        run: |
+          echo "Output: ${FETCH_API_DATA}"
+
+      - name: Build and Deploy Repo 🚀
+        uses: JamesIves/github-pages-deploy-action@d92aa235d04922e8f08b40ce78cc5442fcfbfa2f # v4
+        with:
+          branch: gh-pages
+          folder: fetch-api-data-custom
+          target-folder: data
+          ssh-key: ${{ secrets.DEPLOY_KEY }}

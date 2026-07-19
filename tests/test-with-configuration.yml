@@ -1,0 +1,50 @@
+name: Test With Configuration Headers
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          endpoint: 'https://jsonplaceholder.typicode.com/posts/2'
+          configuration: '{"method": "GET", "headers": {"Accept": "application/json", "Content-Type": "application/json"}}'
+          set-output: 'true'
+
+      - name: Assert output is non-empty
+        env:
+          ACTUAL: ${{ steps.action.outputs.fetchApiData }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: expected fetchApiData output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: fetchApiData output is non-empty"
+
+      - name: Assert output contains expected post fields
+        env:
+          ACTUAL: ${{ steps.action.outputs.fetchApiData }}
+        run: |
+          echo "actual: $ACTUAL"
+          if ! echo "$ACTUAL" | grep -q '"userId"'; then
+            echo "FAIL: expected output to contain 'userId' field"
+            exit 1
+          fi
+          if ! echo "$ACTUAL" | grep -q '"body"'; then
+            echo "FAIL: expected output to contain 'body' field"
+            exit 1
+          fi
+          echo "PASS: output contains expected JSON fields"
+
+      - name: Assert file is saved
+        run: |
+          FILE="fetch-api-data-action/data.json"
+          if [ ! -f "$FILE" ]; then
+            echo "FAIL: expected file '$FILE' to exist"
+            exit 1
+          fi
+          echo "PASS: file '$FILE' exists"

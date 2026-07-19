@@ -1,0 +1,47 @@
+name: Test custom save location and name
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: fetch
+        uses: .
+        with:
+          endpoint: 'https://jsonplaceholder.typicode.com/posts/1'
+          save-location: 'my-custom-dir'
+          save-name: 'my-data'
+          set-output: 'true'
+
+      - name: Assert custom file is saved at correct location
+        run: |
+          FILE="my-custom-dir/my-data.json"
+          if [ ! -f "$FILE" ]; then
+            echo "FAIL: expected file '$FILE' to exist"
+            ls -la my-custom-dir/ 2>/dev/null || echo "Directory does not exist"
+            exit 1
+          fi
+          echo "PASS: custom file exists at $FILE"
+
+      - name: Assert custom file contains valid JSON
+        run: |
+          FILE="my-custom-dir/my-data.json"
+          if ! python3 -c "import json, sys; json.load(open('$FILE'))" 2>/dev/null; then
+            echo "FAIL: file '$FILE' does not contain valid JSON"
+            cat "$FILE"
+            exit 1
+          fi
+          echo "PASS: file contains valid JSON"
+
+      - name: Assert output is set
+        env:
+          ACTUAL: ${{ steps.fetch.outputs.fetchApiData }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: expected fetchApiData output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: fetchApiData output is set"
