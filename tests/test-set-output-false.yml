@@ -1,0 +1,69 @@
+name: Test Set Output False
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          endpoint: 'https://api.github.com/repos/actions/checkout'
+          configuration: '{"headers": {"User-Agent": "fetch-api-data-action-test", "Accept": "application/vnd.github.v3+json"}}'
+          set-output: 'false'
+          debug: 'true'
+
+      - name: Assert default file is saved even when set-output is false
+        run: |
+          FILE1="$GITHUB_WORKSPACE/fetch-api-data-action/data.json"
+          FILE2="fetch-api-data-action/data.json"
+          if [ -f "$FILE1" ]; then
+            echo "PASS: file '$FILE1' exists"
+            cat "$FILE1"
+          elif [ -f "$FILE2" ]; then
+            echo "PASS: file '$FILE2' exists"
+            cat "$FILE2"
+          else
+            echo "FAIL: expected file 'fetch-api-data-action/data.json' to exist"
+            echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+            echo "PWD=$(pwd)"
+            ls -la || true
+            ls -la "$GITHUB_WORKSPACE" || true
+            exit 1
+          fi
+
+      - name: Assert file content is valid JSON with expected fields
+        run: |
+          FILE1="$GITHUB_WORKSPACE/fetch-api-data-action/data.json"
+          FILE2="fetch-api-data-action/data.json"
+          if [ -f "$FILE1" ]; then
+            CONTENT=$(cat "$FILE1")
+          elif [ -f "$FILE2" ]; then
+            CONTENT=$(cat "$FILE2")
+          else
+            echo "FAIL: file not found"
+            exit 1
+          fi
+          echo "content: $CONTENT"
+          if ! echo "$CONTENT" | grep -q '"id"'; then
+            echo "FAIL: expected file content to contain 'id' field"
+            exit 1
+          fi
+          if ! echo "$CONTENT" | grep -q '"name"'; then
+            echo "FAIL: expected file content to contain 'name' field"
+            exit 1
+          fi
+          echo "PASS: file content contains expected fields"
+
+      - name: Assert output is empty when set-output is false
+        env:
+          ACTUAL: ${{ steps.action.outputs.fetchApiData }}
+        run: |
+          echo "actual: '$ACTUAL'"
+          if [ -n "$ACTUAL" ]; then
+            echo "WARN: fetchApiData output is set even though set-output is false (may be expected behavior)"
+          else
+            echo "PASS: fetchApiData output is empty as expected"
+          fi

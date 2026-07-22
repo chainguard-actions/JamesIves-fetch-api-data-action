@@ -1,0 +1,48 @@
+name: Test Custom File Format
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          endpoint: 'https://api.github.com/repos/actions/checkout'
+          configuration: '{"headers": {"User-Agent": "fetch-api-data-action-test", "Accept": "application/vnd.github.v3+json"}}'
+          save-name: 'output'
+          format: 'txt'
+          set-output: 'true'
+          debug: 'true'
+
+      - name: Assert txt file is saved
+        run: |
+          FILE1="$GITHUB_WORKSPACE/fetch-api-data-action/output.txt"
+          FILE2="fetch-api-data-action/output.txt"
+          if [ -f "$FILE1" ]; then
+            echo "PASS: file '$FILE1' exists"
+            cat "$FILE1"
+          elif [ -f "$FILE2" ]; then
+            echo "PASS: file '$FILE2' exists"
+            cat "$FILE2"
+          else
+            echo "FAIL: expected file 'fetch-api-data-action/output.txt' to exist"
+            echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+            echo "PWD=$(pwd)"
+            ls -la || true
+            ls -la "$GITHUB_WORKSPACE" || true
+            exit 1
+          fi
+
+      - name: Assert output is non-empty
+        env:
+          ACTUAL: ${{ steps.action.outputs.fetchApiData }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: expected fetchApiData output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: fetchApiData output is non-empty"

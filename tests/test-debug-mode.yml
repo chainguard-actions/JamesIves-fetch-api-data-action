@@ -1,0 +1,44 @@
+name: Test debug mode and custom variable name
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          endpoint: 'https://jsonplaceholder.typicode.com/comments/1'
+          debug: 'true'
+          variable-name: 'myApiData'
+          set-output: 'true'
+      - name: Assert output file exists
+        run: |
+          FILE="fetch-api-data-action/data.json"
+          echo "Checking for file: $FILE"
+          if [ ! -f "$FILE" ]; then
+            echo "FAIL: expected file '$FILE' not found"
+            exit 1
+          fi
+          echo "PASS: file exists"
+      - name: Assert output variable is set
+        env:
+          ACTUAL: ${{ steps.action.outputs.fetchApiData }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: expected fetchApiData output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: fetchApiData output is set"
+      - name: Assert file content is valid JSON with expected fields
+        run: |
+          FILE="fetch-api-data-action/data.json"
+          CONTENT=$(cat "$FILE")
+          echo "File content: $CONTENT"
+          if ! echo "$CONTENT" | python3 -c "import sys, json; data = json.load(sys.stdin); assert 'id' in data and 'email' in data" 2>/dev/null; then
+            echo "FAIL: file does not contain expected JSON fields (id, email)"
+            exit 1
+          fi
+          echo "PASS: file contains expected comment data"

@@ -1,0 +1,27 @@
+name: Test token-endpoint and token-configuration inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          endpoint: 'https://httpbin.org/get'
+          token-endpoint: 'https://httpbin.org/post'
+          token-configuration: '{"method": "POST", "headers": {"Content-Type": "application/json"}, "body": "{\"grant_type\": \"client_credentials\"}"}'
+          set-output: 'true'
+
+      - name: Assert output is non-empty
+        env:
+          ACTUAL: ${{ steps.action.outputs.fetchApiData }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: expected non-empty output from main endpoint"
+            exit 1
+          fi
+          echo "PASS"

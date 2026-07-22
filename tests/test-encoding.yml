@@ -1,0 +1,37 @@
+name: Test encoding input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          endpoint: 'https://httpbin.org/json'
+          encoding: 'utf-8'
+          save-location: 'fetch-api-data-action'
+          save-name: 'data-encoding'
+          set-output: 'true'
+
+      - name: Assert output is non-empty
+        env:
+          ACTUAL: ${{ steps.action.outputs.fetchApiData }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: expected non-empty output"
+            exit 1
+          fi
+          echo "PASS"
+
+      - name: Assert file was saved
+        run: |
+          FILE="fetch-api-data-action/data-encoding.json"
+          if [ ! -f "$FILE" ]; then
+            echo "FAIL: expected file $FILE not found"
+            exit 1
+          fi
+          echo "PASS: file exists"
