@@ -1,0 +1,51 @@
+name: Test Basic API Fetch
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          endpoint: 'https://jsonplaceholder.typicode.com/todos/1'
+          set-output: 'true'
+          debug: 'true'
+
+      - name: Assert output is non-empty
+        env:
+          ACTUAL: ${{ steps.action.outputs.fetchApiData }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: expected non-empty output from fetchApiData"
+            exit 1
+          fi
+          echo "PASS: output is non-empty"
+
+      - name: Assert output contains expected JSON fields
+        env:
+          ACTUAL: ${{ steps.action.outputs.fetchApiData }}
+        run: |
+          echo "actual: $ACTUAL"
+          if ! echo "$ACTUAL" | grep -q '"id"'; then
+            echo "FAIL: expected 'id' field in response"
+            exit 1
+          fi
+          if ! echo "$ACTUAL" | grep -q '"title"'; then
+            echo "FAIL: expected 'title' field in response"
+            exit 1
+          fi
+          echo "PASS: output contains expected JSON fields"
+
+      - name: Assert data file was saved
+        run: |
+          FILE="fetch-api-data-action/data.json"
+          if [ ! -f "$FILE" ]; then
+            echo "FAIL: expected file '$FILE' to exist"
+            exit 1
+          fi
+          echo "PASS: data file exists at $FILE"
+          cat "$FILE"

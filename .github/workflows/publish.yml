@@ -1,0 +1,65 @@
+name: publish-to-npm
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'The updated registry version number.'
+        required: true
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: dev
+
+      # Setup .npmrc file to publish to npm
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '20.10.0'
+          registry-url: 'https://registry.npmjs.org'
+          scope: '@jamesives'
+
+      - name: Configure Git
+        run: |
+          git config user.email "iam@jamesiv.es"
+          git config user.name "James Ives"
+
+      - name: Install Yarn
+        run: npm install -g yarn
+
+      - run: yarn install --frozen-lockfile
+      - run: yarn build
+      - name: Version and tag
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+        run: npm version "${INPUT_VERSION}" -m "Release ${INPUT_VERSION} 📣"
+      - run: git push
+
+      # Publish to npm
+      - run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # Setup .npmrc file to publish to GitHub Packages
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '20.10.0'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@jamesives'
+
+      - name: Authenticate with the GitHub Package Registry
+        env:
+          GITHUB_TOKEN_VALUE: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "//npm.pkg.github.com:_authToken=${GITHUB_TOKEN_VALUE}" > ~/.npmrc
+
+      # Publish to GitHub Packages
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

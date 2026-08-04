@@ -1,0 +1,54 @@
+name: Test Custom Save Location and Name
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          endpoint: 'https://jsonplaceholder.typicode.com/posts/1'
+          save-location: 'my-custom-dir'
+          save-name: 'my-custom-file'
+          set-output: 'true'
+          debug: 'true'
+
+      - name: Assert custom file was saved at specified location
+        run: |
+          FILE="my-custom-dir/my-custom-file.json"
+          if [ ! -f "$FILE" ]; then
+            echo "FAIL: expected file '$FILE' to exist"
+            ls -la my-custom-dir/ 2>/dev/null || echo "Directory my-custom-dir does not exist"
+            exit 1
+          fi
+          echo "PASS: data file exists at $FILE"
+          cat "$FILE"
+
+      - name: Assert saved file contains expected data
+        run: |
+          FILE="my-custom-dir/my-custom-file.json"
+          CONTENT=$(cat "$FILE")
+          echo "content: $CONTENT"
+          if ! echo "$CONTENT" | grep -q '"id"'; then
+            echo "FAIL: expected 'id' field in saved file"
+            exit 1
+          fi
+          if ! echo "$CONTENT" | grep -q '"title"'; then
+            echo "FAIL: expected 'title' field in saved file"
+            exit 1
+          fi
+          echo "PASS: saved file contains expected JSON fields"
+
+      - name: Assert output is non-empty
+        env:
+          ACTUAL: ${{ steps.action.outputs.fetchApiData }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: expected non-empty output from fetchApiData"
+            exit 1
+          fi
+          echo "PASS: output is non-empty"
