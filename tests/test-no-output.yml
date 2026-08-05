@@ -1,0 +1,35 @@
+name: Test with set-output disabled
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: fetch
+        uses: .
+        with:
+          endpoint: 'https://jsonplaceholder.typicode.com/users/1'
+          set-output: 'false'
+
+      - name: Assert output variable is empty when set-output is false
+        env:
+          ACTUAL: ${{ steps.fetch.outputs.fetchApiData }}
+        run: |
+          echo "actual: '$ACTUAL'"
+          if [ -n "$ACTUAL" ]; then
+            echo "FAIL: expected fetchApiData output to be empty when set-output is false, got: $ACTUAL"
+            exit 1
+          fi
+          echo "PASS: output is empty as expected"
+
+      - name: Assert data file was still saved
+        run: |
+          FILE="fetch-api-data-action/data.json"
+          if [ ! -f "$FILE" ]; then
+            echo "FAIL: expected file '$FILE' to exist even when set-output is false"
+            exit 1
+          fi
+          echo "PASS: file exists at $FILE"
+          cat "$FILE"

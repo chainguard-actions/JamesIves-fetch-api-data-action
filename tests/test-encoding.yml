@@ -1,0 +1,34 @@
+name: Test encoding input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: action
+        uses: .
+        with:
+          endpoint: 'https://jsonplaceholder.typicode.com/todos/1'
+          save-location: 'fetch-api-data-action'
+          save-name: 'data-encoding'
+          encoding: 'utf-8'
+          set-output: 'true'
+      - name: Assert output is set
+        env:
+          ACTUAL: ${{ steps.action.outputs.fetchApiData }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: expected fetchApiData output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: fetchApiData output is set"
+      - name: Assert file was saved
+        run: |
+          FILE="fetch-api-data-action/data-encoding.json"
+          if [ ! -f "$FILE" ]; then
+            echo "FAIL: expected file $FILE to exist"
+            exit 1
+          fi
+          echo "PASS: file exists at $FILE"

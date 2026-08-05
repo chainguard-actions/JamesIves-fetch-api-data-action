@@ -1,0 +1,37 @@
+name: Test Retry Option
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          endpoint: 'https://jsonplaceholder.typicode.com/todos/5'
+          retry: 'true'
+          set-output: 'true'
+          debug: 'true'
+
+      - name: Assert output is non-empty when retry is enabled
+        env:
+          ACTUAL: ${{ steps.action.outputs.fetchApiData }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: expected fetchApiData output to be non-empty with retry enabled"
+            exit 1
+          fi
+          echo "PASS: fetchApiData output is non-empty"
+
+      - name: Assert file is saved
+        run: |
+          FILE="$GITHUB_WORKSPACE/fetch-api-data-action/data.json"
+          if [ ! -f "$FILE" ]; then
+            echo "FAIL: expected file '$FILE' to exist"
+            exit 1
+          fi
+          echo "PASS: file '$FILE' exists"
+          cat "$FILE"

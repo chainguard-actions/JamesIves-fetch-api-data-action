@@ -1,0 +1,39 @@
+name: Test Basic API Fetch
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          endpoint: 'https://jsonplaceholder.typicode.com/todos/1'
+          set-output: 'true'
+          debug: 'true'
+
+      - name: Assert output is non-empty
+        env:
+          ACTUAL: ${{ steps.action.outputs.fetchApiData }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: expected fetchApiData output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: fetchApiData output is non-empty"
+
+      - name: Assert default file is saved
+        run: |
+          FILE="$GITHUB_WORKSPACE/fetch-api-data-action/data.json"
+          if [ ! -f "$FILE" ]; then
+            echo "FAIL: expected file '$FILE' to exist"
+            echo "Listing workspace:"
+            ls -la "$GITHUB_WORKSPACE/" 2>/dev/null || true
+            ls -la "$GITHUB_WORKSPACE/fetch-api-data-action/" 2>/dev/null || true
+            exit 1
+          fi
+          echo "PASS: file '$FILE' exists"
+          cat "$FILE"

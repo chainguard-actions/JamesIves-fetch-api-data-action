@@ -1,6 +1,16 @@
 {
   "owner": "JamesIves",
   "repo": "fetch-api-data-action",
-  "version": "",
-  "url": "https://github.com/JamesIves/fetch-api-data-action"
+  "version": "v2.4.1",
+  "commit_sha": "9120fcc59146b9245c9843e0ee8037d9dce37462",
+  "url": "https://github.com/JamesIves/fetch-api-data-action",
+  "policy_sha": "d636be7e43ef829af6e853da6b3c7566db9f72fe",
+  "test_policy_sha": "843adf9e4b8f85d0c08b27b9d0b09dd094b54702",
+  "test_agent_version": "2",
+  "harden_agent_version": "2",
+  "node_artifact": {
+    "gcs_uri": "gs://prod-actions-node-artifacts/node-artifacts/JamesIves/fetch-api-data-action/v2.4.1/sha256-01bd4a9e61e8852871c0aef85a856dc48ec050676be664dbeaf20d7605d982b6.tar.gz",
+    "sha256": "01bd4a9e61e8852871c0aef85a856dc48ec050676be664dbeaf20d7605d982b6",
+    "size_bytes": 293299
+  }
 }
