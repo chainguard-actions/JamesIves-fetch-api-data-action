@@ -1,0 +1,38 @@
+name: Test txt format output
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          endpoint: 'https://httpbin.org/get'
+          format: 'txt'
+          save-name: 'data'
+          set-output: 'true'
+
+      - name: Assert txt file was saved
+        run: |
+          FILE="fetch-api-data-action/data.txt"
+          if [ ! -f "$FILE" ]; then
+            echo "FAIL: expected file '$FILE' not found"
+            find fetch-api-data-action/ -type f 2>/dev/null || echo "(directory missing)"
+            exit 1
+          fi
+          echo "PASS: file '$FILE' exists"
+          cat "$FILE"
+
+      - name: Assert output is set
+        env:
+          ACTUAL: ${{ steps.action.outputs.fetchApiData }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: fetchApiData output is empty"
+            exit 1
+          fi
+          echo "PASS: fetchApiData output is set"
