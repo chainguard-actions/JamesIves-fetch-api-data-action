@@ -15,6 +15,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | v2.4.2 | [`v2.4.2`](https://github.com/chainguard-actions/JamesIves-fetch-api-data-action/tree/v2.4.2) | [`e9b926d`](https://github.com/JamesIves/fetch-api-data-action/commit/e9b926da66aea24f5e628e11f36dfbab75dd7b0a) |
 | v2.5.0 | [`v2.5.0`](https://github.com/chainguard-actions/JamesIves-fetch-api-data-action/tree/v2.5.0) | [`8dc51e9`](https://github.com/JamesIves/fetch-api-data-action/commit/8dc51e982d982157bfd575ed64be3c48b3078037) |
 | v2.5.1 | [`v2.5.1`](https://github.com/chainguard-actions/JamesIves-fetch-api-data-action/tree/v2.5.1) | [`217d8ea`](https://github.com/JamesIves/fetch-api-data-action/commit/217d8ea6060d5a575d31f6456063b436c36b478b) |
+| v2.5.2 | [`v2.5.2`](https://github.com/chainguard-actions/JamesIves-fetch-api-data-action/tree/v2.5.2) | [`1df37d5`](https://github.com/JamesIves/fetch-api-data-action/commit/1df37d52090c0a251f252c7ba247d2aba1d408ae) |
 
 ## Privacy
 
