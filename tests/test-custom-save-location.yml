@@ -1,0 +1,39 @@
+name: Test custom save location and name
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          endpoint: 'https://jsonplaceholder.typicode.com/posts/1'
+          save-location: 'my-custom-dir'
+          save-name: 'my-custom-file'
+          debug: 'true'
+
+      - name: Assert custom file was saved
+        run: |
+          FILE="my-custom-dir/my-custom-file.json"
+          if [ ! -f "$FILE" ]; then
+            echo "FAIL: expected file '$FILE' to exist"
+            ls -la my-custom-dir/ 2>/dev/null || echo "(directory does not exist)"
+            exit 1
+          fi
+          echo "Contents of $FILE:"
+          cat "$FILE"
+          echo ""
+          echo "PASS: custom file exists at expected path"
+
+      - name: Assert custom file contains valid JSON
+        run: |
+          FILE="my-custom-dir/my-custom-file.json"
+          if ! python3 -c "import json, sys; json.load(open('$FILE'))" 2>/dev/null; then
+            echo "FAIL: file does not contain valid JSON"
+            cat "$FILE"
+            exit 1
+          fi
+          echo "PASS: file contains valid JSON"

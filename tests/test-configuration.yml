@@ -1,0 +1,47 @@
+name: Test API fetch with configuration
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        with:
+          endpoint: 'https://jsonplaceholder.typicode.com/posts/2'
+          configuration: '{"method": "GET", "headers": {"Accept": "application/json", "Content-Type": "application/json"}}'
+          debug: 'true'
+
+      - name: Assert output is set with configuration
+        env:
+          ACTUAL: ${{ steps.action.outputs.fetchApiData }}
+        run: |
+          echo "actual: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: expected fetchApiData output to be non-empty"
+            exit 1
+          fi
+          echo "PASS: fetchApiData output is set"
+
+      - name: Assert file was saved with configuration
+        run: |
+          FILE="fetch-api-data-action/data.json"
+          if [ ! -f "$FILE" ]; then
+            echo "FAIL: expected file '$FILE' to exist"
+            exit 1
+          fi
+          echo "Contents of $FILE:"
+          cat "$FILE"
+          echo ""
+          echo "PASS: file exists"
+
+      - name: Assert response contains post data
+        run: |
+          FILE="fetch-api-data-action/data.json"
+          if ! grep -q '"title"' "$FILE"; then
+            echo "FAIL: expected JSON to contain 'title' field"
+            exit 1
+          fi
+          echo "PASS: JSON contains expected post data"
