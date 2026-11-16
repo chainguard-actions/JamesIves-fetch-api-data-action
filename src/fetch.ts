@@ -2,7 +2,8 @@ import {
   info,
   exportVariable,
   setOutput as setEnvironmentOutput,
-  debug
+  debug,
+  setSecret
 } from '@actions/core'
 import {mkdirP} from '@actions/io'
 import {promises as fs} from 'fs'
@@ -10,6 +11,32 @@ import {render} from 'mustache'
 import retryRequest from 'async-retry'
 import {DataInterface, ExportInterface, Status} from './constants'
 import {parseData} from './util'
+
+/**
+ * Registers the raw token response and every string value within it as a
+ * secret so the runner masks them in the logs.
+ */
+function maskSecrets(data: string): void {
+  if (typeof data !== 'string' || data.trim() === '') {
+    return
+  }
+
+  setSecret(data)
+
+  const visit = (value: unknown): void => {
+    if (typeof value === 'string') {
+      if (value.trim() !== '') {
+        setSecret(value)
+      }
+    } else if (value && typeof value === 'object') {
+      for (const key of Object.keys(value as Record<string, unknown>)) {
+        visit((value as Record<string, unknown>)[key])
+      }
+    }
+  }
+
+  visit(parseData(data))
+}
 
 /**
  * Retrieves data from an API endpoint.
@@ -43,6 +70,12 @@ export async function retrieveData({
         // If anything throws the request is retried.
         const response = await fetch(endpoint, settings)
         const data = await response.text()
+
+        if (isTokenRequest) {
+          // Mask credentials returned by the token endpoint so they never
+          // appear in the workflow logs (debug output, errors, etc.).
+          maskSecrets(data)
+        }
 
         if (!response.ok) {
           throw new Error(data)
