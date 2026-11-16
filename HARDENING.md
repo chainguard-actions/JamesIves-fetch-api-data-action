@@ -4,154 +4,132 @@
 
 > This file was generated automatically by the hardening agent.
 
-**Policy SHA:** `d636be7e43ef829af6e853da6b3c7566db9f72fe`
+**Policy SHA:** `374911c4be584df24e6da57af2d990570ef0f859`
 
 **Test Policy SHA:** `843adf9e4b8f85d0c08b27b9d0b09dd094b54702`
 
 **Harden Agent Version:** `2`
 
-Action **JamesIves--fetch-api-data-action/v2.5.2** was hardened automatically. 11 finding(s) were identified and resolved across 3 iteration(s).
+Action **JamesIves--fetch-api-data-action/v2.5.2** was hardened automatically. 1 finding(s) were identified and resolved across 1 iteration(s).
 
 ## Findings Fixed
 
-### script-injection (severity: high)
+### prior-fix (severity: high)
 
-Rule (a): ${{ steps.validate.outputs.fetchApiData }} is directly interpolated inside a run: shell command string. Step: 'Access step output'. Offending line: `echo "Output: ${{ steps.validate.outputs.fetchApiData }}"`
-
-Locations:
-
-- `.github/workflows/integration.yml:48`
-
-### script-injection (severity: high)
-
-Rule (a): Multiple ${{ }} expressions are directly interpolated inside run: shell command strings in the 'Commit and Push' step. Offending lines: `git config user.email "${{ secrets.GIT_CONFIG_EMAIL }}"`, `git config user.name "${{ secrets.GIT_CONFIG_NAME }}"`, `git commit -m "Deploy Production Code for Commit ${{ github.sha }} 🚀"`
-
-Locations:
-
-- `.github/workflows/production.yml:55`
-- `.github/workflows/production.yml:56`
-- `.github/workflows/production.yml:58`
-
-### script-injection (severity: high)
-
-Rule (a): Multiple ${{ }} expressions are directly interpolated inside run: shell command strings across several steps. Offending lines include: `git config user.email "${{ secrets.GIT_CONFIG_EMAIL }}"` (Configure Git), `git config user.name "${{ secrets.GIT_CONFIG_NAME }}"` (Configure Git), `NEXT_VERSION=$(npm --no-git-tag-version version "${{ inputs.bump }}")` (Compute the next version — inputs.bump is attacker-controllable via workflow_dispatch), `git checkout -b ${{ steps.version.outputs.target-branch }}` (Create the new major release branch — unquoted, rule b also violated), `git push origin ${{ steps.version.outputs.target-branch }}` (same step), `git fetch origin ${{ steps.version.outputs.target-branch }}` (Merge dev step), `git checkout ${{ steps.version.outputs.target-branch }}` (Merge dev step), `git push origin ${{ steps.version.outputs.target-branch }}` (Merge dev step), `gh release create "v${{ needs.prepare.outputs.next-version }}" --title "v${{ needs.prepare.outputs.next-version }}" --target "${{ needs.prepare.outputs.target-branch }}"` (Create the GitHub Release).
-
-Locations:
-
-- `.github/workflows/release.yml:33`
-- `.github/workflows/release.yml:34`
-- `.github/workflows/release.yml:43`
-- `.github/workflows/release.yml:57`
-- `.github/workflows/release.yml:58`
-- `.github/workflows/release.yml:63`
-- `.github/workflows/release.yml:64`
-- `.github/workflows/release.yml:82`
-- `.github/workflows/release.yml:97`
-
-### script-injection (severity: high)
-
-Rule (a): ${{ secrets.GITHUB_TOKEN }} is directly interpolated inside a run: shell command string in the 'Authenticate with the GitHub Package Registry' step. Offending line: `echo "//npm.pkg.github.com:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc`
-
-Locations:
-
-- `.github/workflows/version.yml:62`
-
-### unpinned-uses (severity: high)
-
-All uses: references use mutable version tags instead of pinned 40-character SHA digests, making the workflow vulnerable to supply-chain attacks if the referenced action is compromised or its tag is moved. Unpinned references: actions/checkout@v7.0.1, actions/setup-node@v7.0.0, codecov/codecov-action@v7.0.0
-
-Locations:
-
-- `.github/workflows/build.yml:20`
-- `.github/workflows/build.yml:23`
-- `.github/workflows/build.yml:32`
-
-### unpinned-uses (severity: high)
-
-All uses: references use mutable version tags instead of pinned 40-character SHA digests. Unpinned references: actions/checkout@v7.0.1 (×6), JamesIves/github-pages-deploy-action@v4
-
-Locations:
-
-- `.github/workflows/integration.yml:27`
-- `.github/workflows/integration.yml:34`
-- `.github/workflows/integration.yml:55`
-- `.github/workflows/integration.yml:64`
-- `.github/workflows/integration.yml:68`
-- `.github/workflows/integration.yml:107`
-- `.github/workflows/integration.yml:111`
-
-### unpinned-uses (severity: high)
-
-All uses: references use mutable version tags instead of pinned 40-character SHA digests. Unpinned references: actions/checkout@v7.0.1, mauroalderete/action-assign-labels@v1.5.1
-
-Locations:
-
-- `.github/workflows/label.yml:14`
-- `.github/workflows/label.yml:19`
-
-### unpinned-uses (severity: high)
-
-All uses: references use mutable version tags instead of pinned 40-character SHA digests. Unpinned references: actions/checkout@v7.0.1, actions/setup-node@v7.0.0
-
-Locations:
-
-- `.github/workflows/production.yml:31`
-- `.github/workflows/production.yml:35`
-
-### unpinned-uses (severity: high)
-
-All uses: references use mutable version tags instead of pinned 40-character SHA digests. Unpinned references: actions/checkout@v7.0.1 (×2)
-
-Locations:
-
-- `.github/workflows/release.yml:28`
-- `.github/workflows/release.yml:88`
-
-### unpinned-uses (severity: high)
-
-All uses: references use mutable version tags instead of pinned 40-character SHA digests. Unpinned references: actions/checkout@v7.0.1, JamesIves/github-sponsors-readme-action@v1 (×2), JamesIves/github-pages-deploy-action@v4
-
-Locations:
-
-- `.github/workflows/sponsors.yml:13`
-- `.github/workflows/sponsors.yml:16`
-- `.github/workflows/sponsors.yml:28`
-- `.github/workflows/sponsors.yml:40`
-
-### unpinned-uses (severity: high)
-
-All uses: references use mutable version tags instead of pinned 40-character SHA digests. Unpinned references: nowactions/update-majorver@v1.1.2, actions/checkout@v7.0.1, actions/setup-node@v7.0.0 (×2)
+Carried forward from this version's previous harden, which fixed it; fix it again unless the code no longer has the problem. The previous harden changed lib/main.js without recording a finding for it, and this analysis reported nothing there. Re-apply its security changes unless the code no longer needs them. The previous patch:
+```diff
+diff --git a/lib/main.js b/lib/main.js
+index 849ebc2..e8a494d 100644
+--- a/lib/main.js
++++ b/lib/main.js
+@@ -1,2 +1,20269 @@
+-import run from './lib.js';
++import{createRequire as __acCreateRequire}from"node:module";import{fileURLToPath as __acFileURLToPath}from"node:url";import{dirname as __acDirname}from"node:path";const require=__acCreateRequire(import.meta.url);const __filename=__acFileURLToPath(import.meta.url);const __dirname=__acDirname(__filename);
++var __create = Object.create;
++var __defProp = Object.defineProperty;
++var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
++var __getOwnPropNames = Object.getOwnPropertyNames;
++var __getProtoOf = Object.getPrototypeOf;
++var __hasOwnProp = Object.prototype.hasOwnProperty;
++var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
++  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
++}) : x)(function(x) {
++  if (typeof require !== "undefined") return require.apply(this, arguments);
++  throw Error('Dynamic require of "' + x + '" is not supported');
++});
++var __commonJS = (cb, mod) => function __require2() {
++  try {
++    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
++  } catch (e) {
++    throw mod = 0, e;
++  }
++};
++var __copyProps = (to, from, except, desc) => {
++  if (from && typeof from === "object" || typeof from === "function") {
++    for (let key of __getOwnPropNames(from))
++      if (!__hasOwnProp.call(to, key) && key !== except)
++        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
++  }
++  return to;
++};
++var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
++  // If the importer is in node compatibility mode or this is not an ESM
++  // file that has been converted to a CommonJS file using a Babel-
++  // compatible transform (i.e. "__esModule" has not been set), then set
++  // "default" to the CommonJS "module.exports" for node compatibility.
++  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
++  mod
++));
++
++// node_modules/tunnel/lib/tunnel.js
++var require_tunnel = __commonJS({
++  "node_modules/tunnel/lib/tunnel.js"(exports) {
++    "use strict";
++    var net = __require("net");
++    var tls = __require("tls");
++    var http = __require("http");
++    var https = __require("https");
++    var events = __require("events");
++    var assert = __require("assert");
++    var util = __require("util");
++    exports.httpOverHttp = httpOverHttp2;
++    exports.httpsOverHttp = httpsOverHttp2;
++    exports.httpOverHttps = httpOverHttps2;
++    exports.httpsOverHttps = httpsOverHttps2;
++    function httpOverHttp2(options) {
++      var agent = new TunnelingAgent(options);
++      agent.request = http.request;
++      return agent;
++    }
++    function httpsOverHttp2(options) {
++      var agent = new TunnelingAgent(options);
++      agent.request = http.request;
++      agent.createSocket = createSecureSocket;
++      agent.defaultPort = 443;
++      return agent;
++    }
++    function httpOverHttps2(options) {
++      var agent = new TunnelingAgent(options);
++      agent.request = https.request;
++      return agent;
++    }
++    function httpsOverHttps2(options) {
++      var agent = new TunnelingAgent(options);
++      agent.request = https.request;
++      agent.createSocket = createSecureSocket;
++      agent.defaultPort = 443;
++      return agent;
++    }
++    function TunnelingAgent(options) {
++      var self = this;
++      self.options = options || {};
++      self.proxyOptions = self.options.proxy || {};
++      self.maxSockets = self.options.maxSockets || http.Agent.defaultMaxSockets;
++      self.requests = [];
++      self.sockets = [];
++      self.on("free", function onFree(socket, host, port, localAddress) {
++        var options2 = toOptions(host, port, localAddress);
++        for (var i = 0, len = self.requests.length; i < len; ++i) {
++          var pendi
+... (truncated)
+```
 
 Locations:
 
-- `.github/workflows/version.yml:16`
-- `.github/workflows/version.yml:31`
-- `.github/workflows/version.yml:38`
-- `.github/workflows/version.yml:57`
+- `lib/main.js`
 
 ## Iteration Notes
 
 ### Iteration 1
 
-**Fixes applied:** script-injection, unpinned-uses
-
 **Notes:**
 
-Fixed all script-injection findings by moving ${{ }} expressions from run: shell strings into env: blocks and referencing them as plain environment variables. Fixed all unpinned-uses findings by resolving each action tag to its full 40-character SHA digest using lookup_action_sha. Files modified: build.yml (pinned 3 actions), integration.yml (pinned 7 actions, fixed 1 script injection), label.yml (pinned 2 actions), production.yml (pinned 2 actions, fixed 3 script injections), release.yml (pinned 2 actions, fixed 9 script injections across 5 steps), sponsors.yml (pinned 4 actions), version.yml (pinned 4 actions, fixed 1 script injection).
+I made no changes. The earlier patch to lib/main.js swapped the 2-line `import run from './lib.js'` entry point for a 20,269-line esbuild bundle of the action and its dependencies. As far as I can see that is a build artifact, not a security fix. The visible part is only esbuild's helper code and copies of the dependencies (tunnel and others). The rest of the diff was cut off, so I couldn't check it. I didn't try to rebuild the bundle by hand: it's far too big to reproduce reliably, and a hand-written copy could break the action.
 
-### Iteration 2
+The current code doesn't need it:
+- node_modules ships with the action and contains the runtime dependencies (@actions, async-retry, mustache), so the unbundled lib/main.js -> lib.js -> fetch.js chain loads as it is.
+- I read lib/lib.js and lib/fetch.js and found nothing to fix. The fetched data goes to the environment and to the step output through @actions/core's exportVariable and setOutput. To my knowledge those write to the env and output files using a random per-call delimiter, so a multi-line response can't inject extra entries.
+- action.yml is a plain node24 action with no uses:, no run: steps and no ${{ }} expressions in shell code.
 
-**Fixes applied:** script-injection
-
-**Notes:**
-
-Fixed the script injection vulnerability in .github/workflows/version.yml at line 47. Changed `npm version $VERSION -m "Release $VERSION 📣"` to `npm version "$VERSION" -m "Release $VERSION 📣"`. The VERSION variable is derived from GITHUB_REF (set via `env: GITHUB_REF: ${{ github.ref }}`), which is a workflow-controllable value. Quoting the first `$VERSION` argument prevents shell metacharacter injection from specially crafted tag names.
-
-### Iteration 1
-
-**Fixes applied:** github-env-injection
-
-**Notes:**
-
-In .github/workflows/release.yml, the 'Compute the next version and target release branch' step now sanitizes NEXT_VERSION and NEXT_MAJOR before writing them to $GITHUB_OUTPUT. Added two sanitization lines: `SAFE_NEXT_VERSION=$(printf '%s' "$NEXT_VERSION" | tr -d '\n\r')` and `SAFE_NEXT_MAJOR=$(printf '%s' "$NEXT_MAJOR" | tr -d '\n\r')`, then replaced the raw variable references in the echo statements with the sanitized versions. This prevents any newline characters that could be injected via the npm command output from corrupting the $GITHUB_OUTPUT file format.
+If the bundle was actually there because node_modules wasn't shipped, it should be rebuilt with esbuild in the build pipeline rather than recreated by hand.
 
